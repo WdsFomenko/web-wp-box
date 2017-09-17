@@ -1,0 +1,34 @@
+- name: Install php-pear
+  apt: pkg="php-pear" state=present
+  when: php7.pecl_packages is defined
+
+- name: Install php7.1-dev
+  apt: pkg="php7.1-dev" state=present
+  when: php7.pecl_packages is defined
+
+- name: Install libgraphicsmagick1
+  apt: pkg="libgraphicsmagick1-dev" state=present
+  when: php7.pecl_packages is defined
+
+- name: Install Package
+  shell: echo "\n\n\n\n\n\n\n\n\n" | pecl install {{ item }}
+  register: pecl_result
+  changed_when: "'already installed' not in pecl_result.stdout"
+  failed_when: "'ERROR' in pecl_result.stdout"
+  with_items: "{{ php7.pecl_packages }}"
+  when: php7.pecl_packages is defined
+
+- name: Create extension .ini file
+  template: >
+    src="extension.j2"
+    dest="/etc/php/7.1/mods-available/{{ item | regex_replace('-[\\w\\.]+$', '') }}.ini"
+    owner="root"
+    group="root"
+    mode=0644
+  with_items: "{{ php7.pecl_packages }}"
+  when: php7.pecl_packages is defined
+
+- name: Enable extension
+  shell: phpenmod {{ item | regex_replace('-[\\w\\.]+$', '') }}
+  with_items: "{{ php7.pecl_packages }}"
+  when: php7.pecl_packages is defined

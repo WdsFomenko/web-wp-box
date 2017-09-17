@@ -1,0 +1,58 @@
+---
+# Services configurations
+server:
+  user: vagrant
+  packages: [vim, curl, git, build-essential, libssl-dev, zip, unzip, python-pip]
+  timezone: UTC
+  locale: en_US.UTF-8
+nginx:
+  docRoot: /var/www/vagrant/dist
+  serverName: site.dev
+apache:
+  docRoot: /var/www/vagrant/dist
+  serverName: site.dev
+mysql:
+  dump: /var/www/vagrant/data/setup.sql
+  database: site
+  username: site
+  password: site
+  environment: development
+pgsql:
+  dump: /var/www/vagrant/data/setup.sql
+  database: site
+  user: site
+  password: site
+php5:
+ ppa: ondrej/php
+ packages: [php5-common, php5.6-zip, php5.6-cli, php5.6-intl, php5.6-mcrypt, php5.6-imagick, php5.6-gd, php5.6-curl, php5.6-apcu, php5.6-pgsql, php5.6-mysql, php5.6-mysqli, php5.6-xml]
+ pecl_packages: [redis, gmagick-1.1.7RC3]
+php7:
+  ppa: ondrej/php
+  packages: [php7.1-common, php7.1-cli, php7.1-redis, php7.1-intl, php7.1-mcrypt, php7.1-mysql, php7.1-pgsql, php7.1-mysqli, php7.1-gd, php7.1-gmagick, php7.1-curl, php7.1-apcu, php7.1-xml, php7.1-zip]
+  pecl_packages: [redis, gmagick-2.0.4RC1]
+wordpress:
+  docRoot: /var/www/vagrant/dist
+  lastUrl: https://space-filling.codetiburon.com
+  siteUrl: http://site.dev
+  siteTitle: Site
+  db:
+    database: site
+    username: site
+    password: site
+    prefix: spcflln_
+  admin:
+    name: admin
+    password: pa$$word
+    email: admin-site@yopmail.com
+  plugins: [advanced-custom-fields, carbon-fields, contact-form-7, disable-emails, if-menu, log-emails,
+  mailchimp-for-wp, mobile-menu, profile-builder,regenerate-thumbnails, tinymce-advanced, wp-facebook-login,
+  wpfront-scroll-top]
+application:
+  srcRoot: /var/www/vagrant/src
+  distRoot: /var/www/vagrant/dist/wp-content
+  pluginsName: [revslider, sf-export-pdf]
+  themeName: space_filling
+
+
+
+

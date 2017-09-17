@@ -1,0 +1,10 @@
+---
+- name: Install Nginx
+  apt: pkg=nginx state=latest
+
+- name: Change site nginx site
+  template: src=site.j2 dest=/etc/nginx/sites-available/site
+
+- name: Create symlink
+  file: src=/etc/nginx/sites-available/site dest=/etc/nginx/sites-enabled/site state=link
+  notify: restart nginx

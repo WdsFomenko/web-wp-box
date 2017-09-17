@@ -1,0 +1,58 @@
+---
+- name: Check wp-cli installation
+  become_user: vagrant
+  shell: 'wp help'
+  register: result_wordpress
+  ignore_errors: True
+
+- name: Install wp-cli
+  get_url:
+    url: https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+    dest: '{{ wordpress.docRoot }}'
+  when: result_wordpress|failed
+
+- name: Change mode wp-cli.phar
+  shell: 'cd {{ wordpress.docRoot }} && chmod +x wp-cli.phar'
+  when: result_wordpress|failed
+
+- name: Move wp-cli.phar
+  shell: 'cd {{ wordpress.docRoot }} && mv wp-cli.phar /usr/local/bin/wp'
+  when: result_wordpress|failed
+
+- name: Clean up dist directory
+  shell: 'cd {{ wordpress.docRoot }} &&  for i in `ls` ; do rm -rf $i ; done ; '
+  when: result_wordpress|failed
+
+- name: Install WP core
+  become_user: vagrant
+  shell: 'cd  {{ wordpress.docRoot }} && wp core download'
+  when: result_wordpress|failed
+
+- name: Push wp-config.php
+  template:
+    src: wp-config.j2
+    dest: '{{ wordpress.docRoot }}/wp-config.php'
+  when: result_wordpress|failed
+
+- name: Push .htaccess
+  copy:
+    src: .htaccess
+    dest: '{{ wordpress.docRoot }}/.htaccess'
+  when: result_wordpress|failed
+
+- name: Setup admin settings
+  become_user: vagrant
+  shell: 'cd  {{ wordpress.docRoot }} && wp core install --url="{{ wordpress.siteUrl }}" --title="{{ wordpress.siteTitle }}" --admin_user="{{ wordpress.admin.name }}" --admin_password="{{ wordpress.admin.name }}" --admin_email="{{ wordpress.admin.email }}"'
+  when: result_wordpress|failed
+
+- name: Install core WP plugins
+  become_user: vagrant
+  shell: 'cd  {{ wordpress.docRoot }} && wp plugin install {{ item }} --activate'
+  with_items: '{{ wordpress.plugins }}'
+  when: result_wordpress|failed
+
+- name: Replace site url by content
+  become_user: vagrant
+  shell: 'cd  {{ wordpress.docRoot }} && wp search-replace  "{{ wordpress.lastUrl }}" "{{ wordpress.siteUrl }}"'
+  when: wordpress.lastUrl is defined
+

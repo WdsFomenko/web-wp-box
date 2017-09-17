@@ -1,0 +1,32 @@
+---
+
+- name: Add PostgreSQL Repository
+  apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main' state=present
+
+- name: Add Keys for PostgreSQL Repository
+  apt_key: url=https://www.postgresql.org/media/keys/ACCC4CF8.asc state=present
+
+- name: Update apt
+  apt: update_cache=yes
+  ignore_errors: yes
+
+- name: Install PostgreSQL Packages
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - postgresql
+    - postgresql-client
+    - python-pygresql
+    - python-psycopg2
+
+- name: Create databases
+  become_user: postgres
+  postgresql_db: name={{ pgsql.database }} state=present
+
+- name: Import dump
+  become_user: postgres
+  shell: psql {{ pgsql.database }} < {{ pgsql.dump }}
+  when: (pgsql.dump is defined) and pgsql.dump
+
+- name: Create users
+  become_user: postgres
+  postgresql_user: name={{ pgsql.user }} password={{ pgsql.password }} db={{ pgsql.database }} priv=ALL

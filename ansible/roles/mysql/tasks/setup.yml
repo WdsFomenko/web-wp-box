@@ -1,0 +1,27 @@
+---
+- name: Create MySQL user
+  mysql_user:
+    login_user: root
+    login_password: "{{mysql_root_password}}"
+    name: "{{ mysql.username }}"
+    password: "{{ mysql.password }}"
+    priv: "*.*:ALL"
+    state: present
+    host: localhost
+
+- name: Create MySQL database
+  mysql_db:
+    name: "{{ mysql.database }}"
+    state: present
+    login_user: root
+    login_password: "{{mysql_root_password}}"
+  register: database
+
+- name: Import MySQL database from dump file
+  mysql_db:
+    name: "{{ mysql.database }}"
+    state: import
+    target: "{{ mysql.dump }}"
+    login_user: root
+    login_password: "{{mysql_root_password}}"
+  when: database.changed

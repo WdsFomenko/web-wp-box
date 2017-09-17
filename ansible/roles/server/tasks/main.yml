@@ -1,0 +1,38 @@
+---
+- name: Update apt
+  apt: update_cache=yes
+
+- name: Install System Packages
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - curl
+    - wget
+    - python-software-properties
+
+- name: Install Extra Packages
+  apt: pkg={{ item }} state=latest
+  with_items: "{{ server.packages }}"
+  when: server.packages is defined
+
+- name: Install qtfaststart
+  pip:
+    name: qtfaststart
+
+- name: Configure the timezone
+  template: src=timezone.j2 dest=/etc/timezone
+
+- name: More Configure the timezone
+  file: src=/usr/share/zoneinfo/{{ server.timezone }} dest=/etc/localtime state=link force=yes backup=yes
+
+- name: Set default system language pack
+  shell: locale-gen {{ server.locale }}
+
+- name: Set default system language vars
+  lineinfile:
+    dest: /etc/default/locale
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: "^LANG\b", line: "LANG={{ server.locale }}" }
+    - { regexp: "^LANGUAGE\b", line: "LANGUAGE={{ server.locale }}" }
+    - { regexp: "^LC_ALL\b", line: "LC_ALL={{ server.locale }}" }

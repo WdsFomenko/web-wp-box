@@ -1,0 +1,39 @@
+server {
+  listen 80;
+  charset utf-8;
+  server_name {{ nginx.serverName }}
+  index index.html index.htm index.php;
+  client_max_body_size 1024m;
+  access_log /var/log/nginx/{{ nginx.serverName }}.access.log;
+  error_log /var/log/nginx/{{ nginx.serverName }}.error.log;
+
+  add_header Access-Control-Allow-Origin '$http_origin';
+  add_header Access-Control-Allow-Methods 'GET, POST, PUT, OPTIONS, PATCH, HEAD, DELETE';
+  add_header Access-Control-Allow-Credentials true;
+  add_header Access-Control-Allow-Headers 'Authorization, Content-Type, Origin';
+
+  location / {
+    if (!-f $request_filename) {
+      rewrite ^(.*)$ /index.php?q=$1 last;
+      break;
+    }
+
+    root  {{ nginx.docRoot }};
+    try_files $uri $uri/ index.php /index.php$is_args$args;
+  }
+
+  location ~ \.php$ {
+    root {{ nginx.docRoot }};
+    index index.html index.htm index.php;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    fastcgi_param APP_ENV dev;
+    fastcgi_param APPLICATION_ENV development;
+    fastcgi_pass unix:/var/run/php/php5.6-fpm.sock;
+    fastcgi_read_timeout 3000;
+    fastcgi_split_path_info ^(.+\.php)(/.*)$;
+    include fastcgi_params;
+  }
+
+  sendfile off;
+}

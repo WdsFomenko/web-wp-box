@@ -1,0 +1,25 @@
+---
+- name: Add ppa repository
+  apt_repository: repo=ppa:{{ php7.ppa }}
+
+- name: Update apt
+  apt: update_cache=yes
+
+- name: Install php7.1
+  apt: pkg=php7.1 state=latest
+
+- name: Install php7.1-fpm
+  apt: pkg=php7.1-fpm state=latest
+
+- name: Swich php cli to 7.1 version
+  shell: update-alternatives --set php /usr/bin/php7.1
+
+- name: Install PHP Packages
+  apt: pkg={{ item }} state=latest
+  with_items: "{{ php7.packages }}"
+  when: php7.packages is defined
+
+- include: configure.yml
+- include: pecl.yml
+- include: php-cli.yml
+- include: php-fpm.yml

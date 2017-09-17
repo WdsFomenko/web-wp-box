@@ -1,0 +1,31 @@
+---
+- name: Set permissions on socket - owner
+  lineinfile: "dest=/etc/php/5.6/fpm/pool.d/www.conf state=present regexp='^;?listen.owner' line='listen.owner = www-data'"
+
+- name: Set permissions on socket - group
+  lineinfile: "dest=/etc/php/5.6/fpm/pool.d/www.conf state=present regexp='^;?listen.group' line='listen.group = www-data'"
+
+- name: Set permissions on socket - mode
+  lineinfile: "dest=/etc/php/5.6/fpm/pool.d/www.conf state=present regexp='^;?listen.mode' line='listen.mode = 0660'"
+  notify: restart php5.6-fpm
+
+- name: ensure timezone is set in fpm php.ini
+  lineinfile: dest=/etc/php/5.6/fpm/php.ini
+              regexp='date.timezone ='
+              line='date.timezone = {{ server.timezone }}'
+
+- name: enabling opcache
+  lineinfile: dest=/etc/php/5.6/fpm/php.ini
+              regexp=';?opcache.enable=\d'
+              line='opcache.enable=1'
+
+- name: Set file upload limit parameters
+  lineinfile:
+    dest: /etc/php/5.6/fpm/php.ini
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: "^;?upload_max_filesize=", line: "upload_max_filesize=1024M" }
+    - { regexp: "^;?post_max_size=", line: "post_max_size=1024M" }
+    - { regexp: "^;?memory_limit=", line: "memory_limit=1024M" }
+    - { regexp: "^;?max_input_time=", line: "max_input_time=300" }

@@ -1,0 +1,25 @@
+---
+- name: Add ppa repository
+  apt_repository: repo=ppa:{{ php5.ppa }}
+
+- name: Update apt
+  apt: update_cache=yes
+
+- name: Install php5.6
+  apt: pkg=php5.6 state=latest
+
+- name: Swich php cli to 5.6 version
+  shell: update-alternatives --set php /usr/bin/php5.6
+
+- name: Install php5.6-fpm
+  apt: pkg=php5.6-fpm state=latest
+
+- name: Install PHP Packages
+  apt: pkg={{ item }} state=latest
+  with_items: "{{ php5.packages }}"
+  when: php5.packages is defined
+
+- include: configure.yml
+- include: pecl.yml
+- include: php-cli.yml
+- include: php-fpm.yml

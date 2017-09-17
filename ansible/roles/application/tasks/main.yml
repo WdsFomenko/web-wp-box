@@ -1,0 +1,24 @@
+- name: Check app installation
+  become_user: vagrant
+  shell: 'cd  {{ wordpress.docRoot }} && wp theme activate {{ application.themeName }}'
+  register: result_app
+  ignore_errors: True
+
+- name: Remove default themes
+  shell: "cd  {{ wordpress.docRoot }}/wp-content/themes && rm -rf *"
+  when: result_app|failed
+
+- name: Install source files into dist directory
+  shell: "cp -R {{ application.srcRoot }}/* {{ application.distRoot}}/"
+  when: result_app|failed
+
+- name: Ativate custom theme
+  become_user: vagrant
+  shell: 'cd  {{ wordpress.docRoot }} && wp theme activate {{ application.themeName }}'
+  when: result_app|failed
+
+- name: Ativate custom plugins
+  become_user: vagrant
+  shell: 'cd  {{ wordpress.docRoot }} && wp plugin activate {{ item }}'
+  with_items: '{{ application.pluginsName }}'
+  when: result_app|failed
